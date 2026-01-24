@@ -1,0 +1,107 @@
+blueprint:
+  name: Light DayNight Ambient Lights
+  description: Automation to switch lights ambient and daynight, lights (selectable value)
+  domain: automation
+  input:
+    light_target_lights:
+      name: Light (as light)
+      selector:
+        target:
+          entity:
+            domain: light
+    light_mode:
+      name: light_mode
+      description: Defines which mode is used ("Uit", "Aan", "Auto", "Ambient", "Schedule")
+      selector:
+        entity:
+          filter:
+            domain: input_select
+    is_dark:
+      name: is_dark
+      description: Defines when it is dark (true)
+      selector:
+        entity: {}
+    is_ambient:
+      name: is_ambient
+      description: Defines when the ambient times are according a schedule
+      selector:
+        entity:
+          filter:
+            domain: schedule
+    active_light_perc:
+      name: active light percentage
+      description: Defines the percentage [0, 100] to set a light to when active
+      default: 0
+      selector:
+        entity:
+          filter:
+            domain: input_number
+
+variables:
+  active_light_value: !input active_light_perc
+
+trigger:
+  - trigger: state
+    entity_id: !input is_dark
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    attribute: position
+  - trigger: state
+    entity_id: !input is_ambient
+  - trigger: state
+    entity_id: !input light_mode
+  - trigger: state
+    entity_id: !input active_light_perc
+
+condition: []
+
+action:
+  # Light_target_lights available
+  - choose:
+      # Ambient / On
+      - conditions:
+          - condition: or
+            conditions:
+            - condition: and
+              conditions:
+                - condition: state
+                  entity_id: !input light_mode
+                  state: "Auto"
+                - condition: state
+                  entity_id: !input is_dark
+                  state: "on"
+                - condition: state
+                  entity_id: !input is_ambient
+                  state: "on"
+            - condition: state
+              entity_id: !input light_mode
+              state: "Aan"
+            - condition: and
+              conditions:
+                - condition: state
+                  entity_id: !input light_mode
+                  state: "Ambient"
+                - condition: state
+                  entity_id: !input is_dark
+                  state: "on"
+            - condition: and
+              conditions:
+                - condition: state
+                  entity_id: !input light_mode
+                  state: "Schedule"
+                - condition: state
+                  entity_id: !input is_ambient
+                  state: "on"
+        sequence:
+          - action: light.turn_on
+            data:
+              brightness_pct: "{{ states[active_light_value].state | float }}"
+            target: !input light_target_lights
+    default:
+      - action: light.turn_off
+        target: !input light_target_lights
+mode: queued
+max: 10
+max_exceeded: silent

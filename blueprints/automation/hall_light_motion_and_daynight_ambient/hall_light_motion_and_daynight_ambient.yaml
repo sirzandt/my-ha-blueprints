@@ -1,0 +1,194 @@
+blueprint:
+  name: Light Motion DayNight Ambient
+  description: Automation to switch lights to certain levels when ambient, daynight and motion
+  domain: automation
+  input:
+    motion_sensor:
+      name: motion_sensor
+      selector:
+        entity:
+          filter:
+            - integration: mqtt
+              domain: binary_sensor
+              device_class: motion
+            - integration: mqtt
+              domain: binary_sensor
+              device_class: occupancy
+    light_target:
+      name: Light
+      selector:
+        target:
+          entity:
+            domain: light
+    light_mode:
+      name: light_mode
+      description: Defines which mode is used ("Uit", "Aan", "Ambient", "Auto")
+      selector:
+        entity:
+          filter:
+            domain: input_select
+    is_dark:
+      name: is_dark
+      description: Defines when it is dark (true)
+      selector:
+        entity: {}
+    is_ambient:
+      name: is_ambient
+      description: Defines when the ambient times are according a schedule
+      selector:
+        entity:
+          filter:
+            domain: schedule
+    do_ambient:
+      name: do_ambient
+      description: Defines whether to do use the ambient setting (not daylight and not active-time)
+      selector:
+        boolean:
+    full_light_perc:
+      name: full light percentage
+      default: 100
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 10
+          unit_of_measurement: "%"
+          mode: slider
+    night_light_perc:
+      name: night light percentage
+      default: 10
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 10
+          unit_of_measurement: "%"
+          mode: slider
+    ambient_light_perc:
+      name: ambient light percentage
+      default: 25
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 10
+          unit_of_measurement: "%"
+          mode: slider
+
+variables:
+  do_ambient: !input do_ambient
+
+trigger:
+  - trigger: state
+    entity_id: !input motion_sensor
+  - trigger: state
+    entity_id: !input is_dark
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    attribute: position
+  - trigger: state
+    entity_id: !input is_ambient
+  - trigger: state
+    entity_id: !input light_mode
+
+condition: []
+
+action:
+  - choose:
+      # Full Light
+      - conditions:
+          - condition: or
+            conditions:
+              - condition: and
+                conditions:
+                  - condition: state
+                    entity_id: !input light_mode
+                    state: Auto
+                  - condition: state
+                    entity_id: !input motion_sensor
+                    state: "on"
+                  - condition: state
+                    entity_id: !input is_dark
+                    state: "on"
+                  - condition: state
+                    entity_id: !input is_ambient
+                    state: "on"
+              - condition: state
+                entity_id: !input light_mode
+                state: "Aan"
+              - condition: and
+                conditions:
+                  - condition: state
+                    entity_id: !input light_mode
+                    state: Ambient
+                  - condition: state
+                    entity_id: !input motion_sensor
+                    state: "on"
+                  - condition: state
+                    entity_id: !input is_dark
+                    state: "on"
+        sequence:
+          - action: light.turn_on
+            data:
+              brightness_pct: !input "full_light_perc"
+            target: !input light_target
+
+      # Night
+      - conditions:
+          - condition: or
+            conditions:
+              - condition: and
+                conditions:
+                  - condition: state
+                    entity_id: !input light_mode
+                    state: Auto
+                  - condition: state
+                    entity_id: !input motion_sensor
+                    state: "on"
+                  - condition: state
+                    entity_id: !input is_dark
+                    state: "on"
+                  - condition: state
+                    entity_id: !input is_ambient
+                    state: "off"
+        sequence:
+          - action: light.turn_on
+            data:
+              brightness_pct: !input night_light_perc
+            target: !input light_target
+      # Ambient
+      - conditions:
+          - condition: or
+            conditions:
+              - condition: and
+                conditions:
+                  - condition: state
+                    entity_id: !input light_mode
+                    state: Auto
+                  - condition: state
+                    entity_id: !input motion_sensor
+                    state: "off"
+                  - condition: state
+                    entity_id: !input is_dark
+                    state: "on"
+                  - condition: state
+                    entity_id: !input is_ambient
+                    state: "on"
+                  - condition: template
+                    value_template: "{{ do_ambient }}"
+              - condition: state
+                entity_id: !input light_mode
+                state: Ambient
+        sequence:
+          - action: light.turn_on
+            data:
+              brightness_pct: !input ambient_light_perc
+            target: !input light_target
+    default:
+      - action: light.turn_off
+        target: !input light_target
+mode: queued
+max: 10
+max_exceeded: silent
