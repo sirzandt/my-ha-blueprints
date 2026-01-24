@@ -1,6 +1,7 @@
 blueprint:
   name: Light Motion DayNight Ambient
   description: Automation to switch lights to certain levels when ambient, daynight and motion
+  source_url: https://github.com/sirzandt/my-ha-blueprints/blob/main/blueprints/automation/hall_light_motion_and_daynight_ambient/hall_light_motion_and_daynight_ambient.yaml
   domain: automation
   input:
     motion_sensor:
