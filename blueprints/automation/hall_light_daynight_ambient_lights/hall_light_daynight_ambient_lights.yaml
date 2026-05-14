@@ -16,7 +16,7 @@ blueprint:
             - light
     light_mode:
       name: Light mode
-      description: Defines which mode is used (Input Select: "Uit", "Aan", "Auto", "Ambient", "Schedule")
+      description: Defines which mode is used. Input Select with modes Uit, Aan, Auto, Ambient, Schedule
       selector:
         entity:
           filter:
