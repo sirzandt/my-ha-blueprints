@@ -1,7 +1,9 @@
 blueprint:
   name: Light DayNight Ambient Lights
-  description: Automation to switch lights ambient and daynight, lights (selectable
-    value)
+  description: >
+    An advanced Home Assistant automation blueprint that intelligently controls lights based on ambient light levels, 
+    with support for multiple modes and customizable thresholds.
+    version: 2.0.0
   source_url: https://github.com/sirzandt/my-ha-blueprints/blob/main/blueprints/automation/hall_light_daynight_ambient_lights/hall_light_daynight_ambient_lights.yaml
   domain: automation
   input:
@@ -13,8 +15,8 @@ blueprint:
           - domain:
             - light
     light_mode:
-      name: light_mode
-      description: Defines which mode is used ("Uit", "Aan", "Auto", "Ambient", "Schedule")
+      name: Light mode
+      description: Defines which mode is used (Input Select: "Uit", "Aan", "Auto", "Ambient", "Schedule")
       selector:
         entity:
           filter:
@@ -23,7 +25,7 @@ blueprint:
           multiple: false
           reorder: false
     ambient_level:
-      name: ambient_level
+      name: Ambient level
       description: Defines the brightness percentage [0, 100] to set a light to when in ambient mode
       default: 20
       selector:
@@ -32,7 +34,7 @@ blueprint:
           max: 100
           step: 1
     is_ambient:
-      name: is_ambient
+      name: Is ambient
       description: Defines when the ambient times are according a schedule
       selector:
         entity:
@@ -42,8 +44,10 @@ blueprint:
           multiple: false
           reorder: false
     active_level_value:
-      name: active_level_value
-      description: Defines the brightness percentage [0, 100] to set a light to when active (in auto mode)
+      name: Active level value
+      description: >
+        A number helper that defines the brightness percentage [0, 100] to set a light to when active (in auto mode)
+        It can be used to set the brightness based on time of day, for example by using an automation that sets it to a higher value during the day and a lower value during the evening and night.
       default: 100
       selector:
         entity:
@@ -53,7 +57,7 @@ blueprint:
           multiple: false
           reorder: false
     light_level_value:
-      name: light_level value
+      name: Light level value
       description: Defines the current light level (0-100) as percentage (for example from a light sensor)
       selector:
         entity:
@@ -63,7 +67,7 @@ blueprint:
           multiple: false
           reorder: false
     light_level_ambient_threshold:
-      name: light_level_ambient_threshold
+      name: Light level ambient threshold
       description: Defines the light level (0-100) as percentage above which it is considered bright enough to not use ambient light (for example from a light sensor)
       default: 50
       selector:
@@ -72,7 +76,7 @@ blueprint:
           max: 100
           step: 1
     light_level_darker_threshold:
-      name: light_level_darker_threshold
+      name: Light level darker threshold
       description: Defines the offset with respect to light_level_ambient_threshold to determine whether it is dark enough to switch to ambient mode. For example, if light_level_ambient_threshold is 50 and light_level_darker_threshold is 20, then the light is considered dark if it is below 30 (50 - 20).
       default: 20
       selector:
@@ -81,7 +85,7 @@ blueprint:
           max: 100
           step: 1
     light_level_darker_wait_time:
-      name: light_level_darker_wait_time
+      name: Light level darker wait time
       description: Defines how long to wait for the light level to be below the dark threshold before switching off the light (when in auto mode). In minutes.
       default: 5
       selector:
@@ -90,7 +94,7 @@ blueprint:
           max: 60
           step: 1
     light_level_lighter_threshold:
-      name: light_level_lighter_threshold
+      name: Light level lighter threshold
       description: Defines the offset with respect to light_level_ambient_threshold to determine whether it is bright enough to switch back from ambient mode. For example, if light_level_ambient_threshold is 50 and light_level_lighter_threshold is 20, then the light is considered bright if it is above 70 (50 + 20).
       default: 20
       selector:
@@ -99,7 +103,7 @@ blueprint:
           max: 100
           step: 1
     light_level_lighter_wait_time:
-      name: light_level_lighter_wait_time
+      name: Light level lighter wait time
       description: Defines how long to wait for the light level to be above the lighter threshold before switching back from ambient mode (when in auto mode). In minutes.
       default: 5
       selector:
@@ -108,7 +112,7 @@ blueprint:
           max: 60
           step: 1
     light_mode_change_delay:
-      name: light_mode_change_delay
+      name: Light mode change delay
       description: Defines how long to wait after a change in light_mode before reacting. In seconds.
       default: 0
       selector:
@@ -117,7 +121,7 @@ blueprint:
           max: 3600
           step: 1
     is_ambient_change_delay:
-      name: is_ambient_change_delay
+      name: Is ambient change delay
       description: Defines how long to wait after a change in is_ambient before reacting. In seconds.
       default: 0
       selector:
